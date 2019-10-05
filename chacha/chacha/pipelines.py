@@ -23,11 +23,6 @@ class ChachaPipeline(object):
             return self.storeUidItem(item, spider)
 
     def storeBasicsItem(self, item, spider):
-        sql = """INSERT IGNORE INTO %s (url, uid_chacha, corp_name, corp_tele, corp_website, corp_email,
-        corp_addr, faren, registered_capital, issued_capital, corp_status, estab_date, socialcredit_code,
-        taxpayer_code, registered_code, org_code, business_type, industry, issue_date, registrar, district,
-        english_name, other_name, insured_staff_number, scale, term_business, business_scope
-        )"""% ITEM_BASICS_TABLE + "VALUES (%s, %s, %s, %s)"
         data = [item['url'], item['uid_chacha'], item['corp_name'], item['corp_tele'], item['corp_website'],
                 item['corp_email'], item['corp_addr'], item['faren'], item['registered_capital'],
                 item['issued_capital'], item['corp_status'], item['estab_date'], item['socialcredit_code'],
@@ -36,6 +31,13 @@ class ChachaPipeline(object):
                 item['other_name'], item['insured_staff_number'], item['scale'], item['term_business'],
                 item['business_scope']
                 ]
+        length = "%s, "*len(data)
+        sql = """INSERT IGNORE INTO %s (url, uid_chacha, corp_name, corp_tele, corp_website, corp_email,
+        corp_addr, faren, registered_capital, issued_capital, corp_status, estab_date, socialcredit_code,
+        taxpayer_code, registered_code, org_code, business_type, industry, issue_date, registrar, district,
+        english_name, other_name, insured_staff_number, scale, term_business, business_scope
+        )"""%ITEM_BASICS_TABLE + "VALUES (%s)"%length
+
         self.conn.insert_by_sql(sql, data)
         return item
 

@@ -108,7 +108,7 @@ DEFAULT_REQUEST_HEADERS = {
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     'chacha.middlewares.UserAgentDownloaderMiddleware': 50,
-    'chacha.middlewares.HttpProxyDownloaderMiddleware': 100,
+    # 'chacha.middlewares.HttpProxyDownloaderMiddleware': 100,
     # 'chacha.middlewares.SeleniumDownloaderMiddleware': 150,
     # 'chacha.middlewares.CookieDownloaderMiddleware': 200,
     'chacha.middlewares.RandomDelayDownloaderMiddleware': 250,

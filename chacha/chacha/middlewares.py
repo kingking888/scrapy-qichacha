@@ -62,9 +62,8 @@ class HttpProxyDownloaderMiddleware(object):
         result = self.cursor.fetchall()
         if len(result):
             proxy = random.choice(result)[0]
-            full_proxy = "http://" + proxy
-            self.logger.warning("#############" + str(full_proxy) + "试用中##############")
-            return proxy, full_proxy
+            self.logger.warning("#############" + str(proxy) + "试用中##############")
+            return proxy
         else:
             raise PoolEmptyError
 
@@ -99,16 +98,16 @@ class HttpProxyDownloaderMiddleware(object):
 
     def process_request(self, request, spider):
         # 随机选取一个分数最高的 IP
-        proxy, full_proxy = self.random_proxy()
-        request.meta["proxy"] = full_proxy
-        request.meta["raw_proxy"] = proxy
+        proxy = self.random_proxy()
+        request.meta["proxy"] = proxy # 给爬虫使用的proxy
+        request.meta["raw_proxy"] = proxy # 另外单独用来筛选数据库内 proxy 的
 
     def process_response(self, request, response, spider):
         http_status = response.status
         # 根据response的状态判断 ，200的话ip设置为MAX_SCORE重新写入数据库，返回response到下一环节
         if http_status == 200:
-            proxy = request.meta["raw_proxy"]
-            self.assign_max_score(proxy)
+            raw_proxy = request.meta["raw_proxy"]
+            self.assign_max_score(raw_proxy)
             return response
         # 403有可能是因为user-agent不可用引起，和代理ip无关，返回请求即可
         elif http_status == 403:
@@ -116,16 +115,16 @@ class HttpProxyDownloaderMiddleware(object):
             return request.replace(dont_filter=True)
         # 其他情况姑且被判定ip不可用，score 扣一分，score为0的删掉
         else:
-            proxy = request.meta["raw_proxy"]
-            self.decrease_score(proxy)
+            raw_proxy = request.meta["raw_proxy"]
+            self.decrease_score(raw_proxy)
             return request.replace(dont_filter=True)
 
     def process_exception(self, request, exception, spider):
         # 其他一些timeout之类异常判断后的处理，ip不可用删除即可
         if isinstance(exception, self.EXCEPTIONS_TO_CHANGE) and request.meta.get('proxy', False):
-            proxy = request.meta["raw_proxy"]
-            self.decrease_score(proxy)
-            self.logger.debug("Proxy {}链接出错{}.".format(request.meta['proxy'], exception))
+            raw_proxy = request.meta["raw_proxy"]
+            self.decrease_score(raw_proxy)
+            self.logger.debug("Proxy {}链接出错{}.".format(raw_proxy, exception))
             return request.replace(dont_filter=True)
 
 class RandomDelayDownloaderMiddleware(object):
